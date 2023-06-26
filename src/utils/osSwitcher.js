@@ -9,7 +9,7 @@ export const osSwitcher = (arg) => {
     case '--cpus':
       const model = cpus().map((el) => ({
         model: el.model.trim(),
-        'Clock rate': (el.speed / 1000).toFixed(1) + ' GHz',
+        'Clock rate': `${( el.speed / 1000).toFixed(1)} GHz`,
       }));
       console.log(`Amount of CPUS - ${model.length}`);
       console.table(model);

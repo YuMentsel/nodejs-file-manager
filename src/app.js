@@ -1,8 +1,18 @@
 import { createInterface } from 'node:readline';
 import { createReadStream, createWriteStream } from 'node:fs';
-import { readdir, writeFile, access, rename, mkdir, rm as remove } from 'node:fs/promises';
+import { createBrotliCompress, createBrotliDecompress } from 'node:zlib';
+import {
+  readdir,
+  readFile,
+  writeFile,
+  access,
+  rename,
+  mkdir,
+  rm as remove,
+} from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
-import { resolve, dirname, basename } from 'node:path';
+import { resolve, dirname, basename, extname } from 'node:path';
+import { createHash } from 'node:crypto';
 import { currentDirectory, invalidInput, operationError } from './utils/messages.js';
 import { isExisting } from './utils/checkers.js';
 import { osSwitcher } from './utils/osSwitcher.js';
@@ -96,6 +106,50 @@ export class App {
 
   os([arg]) {
     osSwitcher(arg);
+  }
+
+  // Hash calculation
+  async hash([file]) {
+    const pathToFile = resolve(this.currentDir, file);
+    const buffer = await readFile(pathToFile);
+    const hash = createHash('sha256').update(buffer).digest('hex');
+    console.log(hash);
+  }
+
+  // Compress and decompress operations
+
+  async compress([file, newFile]) {
+    const ext = extname(newFile);
+    if (ext !== '.gz' && ext !== '.br') {
+      invalidInput();
+      console.log('Extname for compressed file should be .gz or .br');
+      return;
+    }
+    const pathToSrc = resolve(this.currentDir, file);
+    const pathToDest = resolve(this.currentDir, newFile);
+
+    await access(pathToSrc);
+    await pipeline(
+      createReadStream(pathToSrc),
+      createBrotliCompress(),
+      createWriteStream(pathToDest),
+    );
+  }
+
+  async decompress([file, newFile]) {
+    const pathToSrc = resolve(this.currentDir, file);
+    const pathToDest = resolve(this.currentDir, newFile);
+
+    await access(pathToSrc);
+    await pipeline(
+      createReadStream(pathToSrc),
+      createBrotliDecompress(),
+      createWriteStream(pathToDest),
+    );
+  }
+
+  ['.exit']() {
+    process.exit();
   }
 
   async start() {
