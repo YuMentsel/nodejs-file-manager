@@ -5,6 +5,7 @@ import { pipeline } from 'node:stream/promises';
 import { resolve, dirname, basename } from 'node:path';
 import { currentDirectory, invalidInput, operationError } from './utils/messages.js';
 import { isExisting } from './utils/checkers.js';
+import { osSwitcher } from './utils/osSwitcher.js';
 
 export class App {
   constructor(dir) {
@@ -89,6 +90,12 @@ export class App {
   async mv([file, newDir]) {
     await this.cp([file, newDir]);
     await this.rm([file]);
+  }
+
+  // Operating system info
+
+  os([arg]) {
+    osSwitcher(arg);
   }
 
   async start() {
