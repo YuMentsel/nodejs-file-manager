@@ -1,11 +1,8 @@
-import { greetingMessage, exitMessage } from './messages.js';
+import { homedir } from 'node:os';
+import { App } from './app.js';
+import greeting from './utils/greeting.js';
 
-const DEFAULT_USERNAME = 'Anonymous';
+greeting();
 
-const args = process.argv.slice(2);
-let usernameArg = args.find((el) => el.startsWith('--username'));
-const username = usernameArg ? usernameArg.replace('--username=', '').trim() : DEFAULT_USERNAME;
-
-greetingMessage(username);
-
-process.on('exit', () => exitMessage(username));
+const app = new App(homedir());
+await app.start();
