@@ -1,6 +1,5 @@
 import { createInterface } from 'node:readline';
 import { createReadStream, createWriteStream } from 'node:fs';
-import { createBrotliCompress, createBrotliDecompress } from 'node:zlib';
 import {
   readdir,
   readFile,
@@ -16,6 +15,12 @@ import { createHash } from 'node:crypto';
 import { currentDirectory, invalidInput, operationError } from './utils/messages.js';
 import { isExisting } from './utils/checkers.js';
 import { osSwitcher } from './utils/osSwitcher.js';
+import { brodli } from './utils/brodli.js';
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt: '> ',
+});
 
 export class App {
   constructor(dir) {
@@ -128,24 +133,13 @@ export class App {
     const pathToSrc = resolve(this.currentDir, file);
     const pathToDest = resolve(this.currentDir, newFile);
 
-    await access(pathToSrc);
-    await pipeline(
-      createReadStream(pathToSrc),
-      createBrotliCompress(),
-      createWriteStream(pathToDest),
-    );
+    brodli(pathToSrc, pathToDest);
   }
 
   async decompress([file, newFile]) {
     const pathToSrc = resolve(this.currentDir, file);
     const pathToDest = resolve(this.currentDir, newFile);
-
-    await access(pathToSrc);
-    await pipeline(
-      createReadStream(pathToSrc),
-      createBrotliDecompress(),
-      createWriteStream(pathToDest),
-    );
+    brodli(pathToSrc, pathToDest, 'decompress');
   }
 
   ['.exit']() {
@@ -154,19 +148,10 @@ export class App {
 
   async start() {
     currentDirectory(this.currentDir);
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      prompt: '> ',
-    });
-
     rl.prompt();
     rl.on('line', async (input) => {
-      const command = input.trim().split(' '); //todo: fix ""
+      const command = input.trim().split(' ');
       const parsedCommand = { command: command[0], args: command.slice(1) };
-      // console.log(parsedCommand);
-
-      // fixArgs
 
       if (!this[parsedCommand.command]) {
         invalidInput();
@@ -176,7 +161,6 @@ export class App {
       }
 
       try {
-        console.log('!', parsedCommand);
         await this[parsedCommand.command](parsedCommand.args);
         currentDirectory(this.currentDir);
       } catch (e) {
