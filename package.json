@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-file-manager",
+  "version": "1.0.0",
+  "description": "CLI file manager",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "start:user": "node src/index.js --username=User"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YuMentsel/nodejs-file-manager.git"
+  },
+  "author": "Yuliya Mentsel",
+  "license": "ISC"
+}
